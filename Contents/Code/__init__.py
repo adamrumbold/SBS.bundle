@@ -11,7 +11,7 @@ DEFAULT_CACHE_INTERVAL = 1800
 OTHER_CACHE_INTERVAL = 300
 ART           = 'art-default.png'
 ICON          = 'icon-default.png'
-BASE_URL = "http://sbs.com.au/ondemand/video/"
+BASE_URL = "http://www.sbs.com.au/ondemand/video/"
 
 ####################################################################################################
 
@@ -40,13 +40,13 @@ def Lvl2(sender, key, content):
                 temp = re.sub(' ','-',show['name'])
                 url=BASE_URL+show['ID']+'/'+re.sub('-+','-',temp)
                 Log('For show '+ show['name'] + ' adding URL: ' + url)
-                dir.Append(WebVideoItem(url, title=show['name'], subtitle='runtime: '+ str(show['duration']/60) +' mins.', thumb=show['thumbnailURL'], summary=show['description']))
+                dir.Append(WebVideoItem(url, title=show['name'], subtitle='runtime: '+ str(int(show['duration']/60)) +' mins.', thumb=show['thumbnailURL'], summary=show['description']))
         for channel in show['channels']:
             if channel == key:
                 temp = re.sub(' ','-',show['name'])
                 url=BASE_URL+show['ID']+'/'+re.sub('-+','-',temp)
                 try:
-                    dir.Append(WebVideoItem(url, title=show['name'], subtitle='runtime: '+ str(show['duration']/60) +' mins.', thumb=show['thumbnailURL'], summary=show['description']))
+                    dir.Append(WebVideoItem(url, title=show['name'], subtitle='runtime: '+ str(int(show['duration']/60)) +' mins.', thumb=show['thumbnailURL'], summary=show['description']))
                 except:
                     Log('failure to add web video for : ' + str(show))            
     return dir
