@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<site  site="http://www.sbs.com.au/ondemand/video/.*"
-       plugin="http://www.sbs.com.au/vod/theplatform/core/4_4_7/swf/flvPlayer.swf"
+<site  site="http://www.sbs.com.au/ondemand/.*"
+       plugin="http://www.sbs.com.au/vod/theplatform/core/.*/swf/flvPlayer.swf"
        initialState="paused"
        version="1.0"
        >

@@ -15,7 +15,7 @@ BASE_URL = "http://www.sbs.com.au/ondemand/video/"
 
 ####################################################################################################
 
-def Start():
+def Start():    
     Plugin.AddPrefixHandler(VIDEO_PREFIX, VideoMainMenu, L('VideoTitle'), ICON, ART)
     Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
     MediaContainer.art = R(ART)
@@ -45,6 +45,7 @@ def Lvl2(sender, key, content):
             if channel == key:
                 temp = re.sub(' ','-',show['name'])
                 url=BASE_URL+show['ID']+'/'+re.sub('-+','-',temp)
+                Log('For show '+ show['name'] + ' adding URL: ' + url)
                 try:
                     dir.Append(WebVideoItem(url, title=show['name'], subtitle='runtime: '+ str(int(show['duration']/60)) +' mins.', thumb=show['thumbnailURL'], summary=show['description']))
                 except:
@@ -72,7 +73,11 @@ def GetContent():
     content = []
     for entry in x['entries'] :
         show = {}
-        show['thumbnailURL']=entry['media$thumbnails'][0]['plfile$downloadUrl']
+        try:
+            show['thumbnailURL']=entry['media$thumbnails'][0]['plfile$downloadUrl']
+        except:
+            Log("Failed to get thumbnail URL for " + entry['title'])
+            
         show['ID'] = entry['id'][-10:]
         genres = []
         channels = []            
@@ -84,7 +89,7 @@ def GetContent():
                     if j['media$name'] != 'Channel':
                         channels.append(str(j['media$name']))
             except:
-                Log('error with >>' + str(j))
+                Log("skipping category")
         show['genres'] = genres
         show['channels'] = channels
         show['duration'] = entry['media$content'][0]['plfile$duration']
