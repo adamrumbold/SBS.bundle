@@ -1,7 +1,4 @@
 # PMS plugin framework
-from PMS import *
-from PMS.Objects import *
-from PMS.Shortcuts import *
 import re
 ####################################################################################################
 
@@ -21,11 +18,12 @@ def Start():
     MediaContainer.art = R(ART)
     MediaContainer.title1 = NAME
     DirectoryItem.thumb = R(ICON)
-    HTTP.SetCacheTime(DEFAULT_CACHE_INTERVAL)
+    #HTTP.SetCacheTime(DEFAULT_CACHE_INTERVAL)
 
 def VideoMainMenu():
     dir = MediaContainer(viewGroup="InfoList")
     content = GetContent()
+    #Log("Content>>" + content)
     for channel in GetChannels(content):
         dir.Append(Function(DirectoryItem(Lvl2, title=channel), key=channel, content=content))
     for genre in GetGenres(content):
@@ -37,13 +35,13 @@ def Lvl2(sender, key, content):
     for show in content:
         for genre in show['genres']:
             if genre == key:
-                temp = re.sub(' ','-',show['name'])
+                temp = re.sub(' ','-',show['programName'])
                 url=BASE_URL+show['ID']+'/'+re.sub('-+','-',temp)
                 Log('For show '+ show['name'] + ' adding URL: ' + url)
                 dir.Append(WebVideoItem(url, title=show['name'], subtitle='runtime: '+ str(int(show['duration']/60)) +' mins.', thumb=show['thumbnailURL'], summary=show['description']))
         for channel in show['channels']:
             if channel == key:
-                temp = re.sub(' ','-',show['name'])
+                temp = re.sub(' ','-',show['programName'])
                 url=BASE_URL+show['ID']+'/'+re.sub('-+','-',temp)
                 Log('For show '+ show['name'] + ' adding URL: ' + url)
                 try:
@@ -73,12 +71,14 @@ def GetContent():
     content = []
     for entry in x['entries'] :
         show = {}
+        Log("Found show" + entry['title'])
         try:
             show['thumbnailURL']=entry['media$thumbnails'][0]['plfile$downloadUrl']
         except:
             Log("Failed to get thumbnail URL for " + entry['title'])
             
-        show['ID'] = entry['id'][-10:]
+        #show['ID'] = entry['id'][-10:]
+        show['ID'] = re.search('.*/([0-9]+$)',entry['id']).group(1)
         genres = []
         channels = []            
         for j in entry['media$categories']:
@@ -97,6 +97,7 @@ def GetContent():
             show['rating'] = entry['media$ratings'][0]['rating']
         except:
             Log("Couldn't get rating")
+        show['programName'] = entry['pl1$programName']
         show['name'] = entry['title']
         show['description'] = entry['description']
         content.append(show)

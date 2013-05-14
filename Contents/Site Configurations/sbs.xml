@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <site  site="http://www.sbs.com.au/ondemand/.*"
-       plugin="http://resources.sbs.com.au/vod/theplatform/core/.*/swf/flvPlayer.swf"
-       initialState="paused"
+       plugin="http://resources.sbs.com.au/vod/theplatform/core/current/swf/flvPlayer.swf"
+       initialState="playing"
        version="1.0"
        >
  <crop x="0" y="0" width="600" height="360" />
