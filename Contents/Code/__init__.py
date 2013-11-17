@@ -19,6 +19,9 @@ def Start():
     MediaContainer.title1 = NAME
     DirectoryItem.thumb = R(ICON)
     #HTTP.SetCacheTime(DEFAULT_CACHE_INTERVAL)
+    #referrer
+    HTTP.GetCookiesForURL('http://www.sbs.com.au/ondemand')
+    #http://www.sbs.com.au/ondemand/video/22739523672/The-Tales-Of-Nights
 
 def VideoMainMenu():
     dir = MediaContainer(viewGroup="InfoList")
@@ -37,7 +40,7 @@ def Lvl2(sender, key, content):
             if genre == key:
                 temp = re.sub(' ','-',show['programName'])
                 url=BASE_URL+show['ID']+'/'+re.sub('-+','-',temp)
-                Log('For show '+ show['name'] + ' adding URL: ' + url)
+                Log('For show '+ show['name'] + ' adding URL>>' + url + "<<")
                 dir.Append(WebVideoItem(url, title=show['name'], subtitle='runtime: '+ str(int(show['duration']/60)) +' mins.', thumb=show['thumbnailURL'], summary=show['description']))
         for channel in show['channels']:
             if channel == key:
@@ -66,10 +69,10 @@ def GetChannels(content):
                 distinct += [ channel ]
     return distinct
     
-def GetContent():
-    x = JSON.ObjectFromURL("http://www.sbs.com.au/api/video_feed/f/dYtmxB/section-programs?form=json")
+def ParseContent(contentJSON):
     content = []
-    for entry in x['entries'] :
+    
+    for entry in contentJSON['entries'] :
         show = {}
         Log("Found show" + entry['title'])
         try:
@@ -77,7 +80,6 @@ def GetContent():
         except:
             Log("Failed to get thumbnail URL for " + entry['title'])
             
-        #show['ID'] = entry['id'][-10:]
         show['ID'] = re.search('.*/([0-9]+$)',entry['id']).group(1)
         genres = []
         channels = []            
@@ -97,8 +99,21 @@ def GetContent():
             show['rating'] = entry['media$ratings'][0]['rating']
         except:
             Log("Couldn't get rating")
-        show['programName'] = entry['pl1$programName']
+        try:
+            show['programName'] = entry['pl1$programName']
+        except:
+            show['programName'] = entry['title']
         show['name'] = entry['title']
         show['description'] = entry['description']
         content.append(show)
     return content    
+
+def GetContent():
+    showsJSON = JSON.ObjectFromURL("http://www.sbs.com.au/api/video_feed/f/dYtmxB/section-programs?form=json")
+    filmsJSON = JSON.ObjectFromURL("http://www.sbs.com.au/api/video_feed/f/Bgtm9B/sbs-section-sbstv?form=json&byCategories=Film%7CShort+Film%2CSection%2FClips%7CSection%2FPrograms")
+    
+    shows = ParseContent(showsJSON)
+    films = ParseContent(filmsJSON)
+    #get unique content
+    SBSContent = shows +  [x for x in films if x not in shows]
+    return SBSContent
