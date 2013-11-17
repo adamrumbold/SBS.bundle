@@ -34,8 +34,9 @@ def VideoMainMenu():
     return dir
 
 def Lvl2(sender, key, content):
+    sortedContent = sorted(content, key=lambda k: k['name'])
     dir = MediaContainer(viewGroup="InfoList", title2=key)
-    for show in content:
+    for show in sortedContent:
         for genre in show['genres']:
             if genre == key:
                 temp = re.sub(' ','-',show['programName'])
@@ -51,6 +52,7 @@ def Lvl2(sender, key, content):
                     dir.Append(WebVideoItem(url, title=show['name'], subtitle='runtime: '+ str(int(show['duration']/60)) +' mins.', thumb=show['thumbnailURL'], summary=show['description']))
                 except:
                     Log('failure to add web video for : ' + str(show))            
+    
     return dir
 
 def GetGenres(content):
