@@ -1,0 +1,37 @@
+import re
+
+
+def MetadataObjectForURL(url):
+    data = HTML.ElementFromURL(url)
+    title = data.xpath('//div[@class="vod_video_detail"]//h2')[0].text
+    summary = data.xpath('//div[@class="vod_video_content"]//p')[1].text
+    thumb = data.xpath('//meta[@property="og:image"]/@content')[0]
+    return VideoClipObject(
+        title=title,
+        summary=summary,
+        thumb=thumb,
+    )
+
+
+def MediaObjectsForURL(url):
+    return [
+        MediaObject(
+            protocol='rtmp',
+            video_resolution='640',
+            audio_channels=2,
+            parts=[PartObject(key=Callback(PlayVideo, url=url))],
+        ),
+    ]
+
+
+def PlayVideo(url):
+    data = HTML.ElementFromURL(url)
+    js = data.xpath('//script[text()[contains(., "playerParams.releaseUrls")]]')[0].text
+
+    streamInfoURL = re.findall('html: \'(.*?)\'', js, re.DOTALL)[0]
+    streamInfo = HTML.ElementFromURL(streamInfoURL)
+    video = streamInfo.xpath('//video/@src')[0]
+    Log('=== Video ===')
+    Log('Info: ' + streamInfoURL)
+    Log('Video: ' + video)
+    return Redirect(video)

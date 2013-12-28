@@ -9,10 +9,11 @@ OTHER_CACHE_INTERVAL = 300
 ART           = 'art-default.png'
 ICON          = 'icon-default.png'
 BASE_URL = "http://www.sbs.com.au/ondemand/video/"
+ROUTE_PREFIX ="/video/sbs"
 
 ####################################################################################################
 
-def Start():    
+def Start():
     Plugin.AddPrefixHandler(VIDEO_PREFIX, VideoMainMenu, L('VideoTitle'), ICON, ART)
     Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
     MediaContainer.art = R(ART)
@@ -20,40 +21,60 @@ def Start():
     DirectoryItem.thumb = R(ICON)
     #HTTP.SetCacheTime(DEFAULT_CACHE_INTERVAL)
     #referrer
-    HTTP.GetCookiesForURL('http://www.sbs.com.au/ondemand')
+    HTTP.CookiesForURL('http://www.sbs.com.au/ondemand')
     #http://www.sbs.com.au/ondemand/video/22739523672/The-Tales-Of-Nights
 
+@route(ROUTE_PREFIX + '/list')
 def VideoMainMenu():
-    dir = MediaContainer(viewGroup="InfoList")
+    dir = ObjectContainer(title2='Shows')
     content = GetContent()
     #Log("Content>>" + content)
-    for channel in GetChannels(content):
-        dir.Append(Function(DirectoryItem(Lvl2, title=channel), key=channel, content=content))
-    for genre in GetGenres(content):
-        dir.Append(Function(DirectoryItem(Lvl2, title=genre), key=genre, content=content))   
+    for show in content:
+        temp = re.sub(' ','-',show['programName'])
+        url=BASE_URL+show['ID']+'/'+re.sub('-+','-',temp)
+        url=unicode(url)
+        Log('Adding Show: ' + show['name'] + ', url: ' + url)
+        dir.add(Play_sbsvod(url, title=show['name']))
+    Log('Returning DIR')
     return dir
 
-def Lvl2(sender, key, content):
-    sortedContent = sorted(content, key=lambda k: k['name'])
-    dir = MediaContainer(viewGroup="InfoList", title2=key)
-    for show in sortedContent:
+@route(ROUTE_PREFIX + '/view')
+def Lvl2(content):
+    key = content
+    content = GetContent()
+    dir = ObjectContainer(view_group="InfoList", title2=key)
+    for show in content:
         for genre in show['genres']:
             if genre == key:
                 temp = re.sub(' ','-',show['programName'])
                 url=BASE_URL+show['ID']+'/'+re.sub('-+','-',temp)
                 Log('For show '+ show['name'] + ' adding URL>>' + url + "<<")
-                dir.Append(WebVideoItem(url, title=show['name'], subtitle='runtime: '+ str(int(show['duration']/60)) +' mins.', thumb=show['thumbnailURL'], summary=show['description']))
-        for channel in show['channels']:
+                try:
+                    dir.add(Play_sbsvod(url, title=show['name'], subtitle='runtime: '+ str(int(show['duration']/60)) +' mins.', thumb=show['thumbnailURL'], summary=show['description']))
+                except:
+                    Log('failure to add web video for : ' + str(show))
+    for channel in show['channels']:
             if channel == key:
                 temp = re.sub(' ','-',show['programName'])
                 url=BASE_URL+show['ID']+'/'+re.sub('-+','-',temp)
                 Log('For show '+ show['name'] + ' adding URL: ' + url)
                 try:
-                    dir.Append(WebVideoItem(url, title=show['name'], subtitle='runtime: '+ str(int(show['duration']/60)) +' mins.', thumb=show['thumbnailURL'], summary=show['description']))
+                    dir.add(Play_sbsvod(url, title=show['name'], subtitle='runtime: '+ str(int(show['duration']/60)) +' mins.', thumb=show['thumbnailURL'], summary=show['description']))
                 except:
                     Log('failure to add web video for : ' + str(show))            
     
     return dir
+
+def Play_sbsvod(url, title):
+
+    # url='http://sbsauvod-f.akamaihd.net/SBS_Production/managed/2013/12/2013-12-23_484359_,128,512,1000,1500,K.mp4.csmil_0_3@2?v=3.0.3&fp=LNX%2011,9,900,152&r=VJRXF&g=FQKLKKTYIJTG&seek=423'
+
+    vco = VideoClipObject(
+        url=url,
+        title=title,
+    )
+
+    return vco
 
 def GetGenres(content):
     distinct = []
