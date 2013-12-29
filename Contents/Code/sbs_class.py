@@ -1,6 +1,7 @@
 MENU_URL = 'http://www.sbs.com.au/ondemand/js/video-menu?v=1.1'
 API_BASE = 'http://www.sbs.com.au'
 VIDEO_URL = 'http://www.sbs.com.au/ondemand/video'
+SEARCH_URL = 'http://www.sbs.com.au/api/video_feed/f/dYtmxB/search?form=json&count=true&defaultThumbnailAssetType=Thumbnail&q='
 
 class SBS_channel:
     def loadMenu(self):
@@ -30,8 +31,6 @@ class SBS_channel:
             menu = menu
 
         for category in menu:
-            if category['clickable'] == '0':
-                continue
             data.append(category)
         return data
 
@@ -39,13 +38,21 @@ class SBS_channel:
         url = category['url']
         fullURL = API_BASE + url
         apiData = JSON.ObjectFromURL(fullURL)
+        return self.parseShows(apiData)
+
+    def parseShows(self, apiData):
         returnData = []
         for data in apiData['entries']:
             if self.is_int(data):
                 data = apiData['entries'][data]
             data['url'] = self.extractShowURL(data)
             returnData.append(data)
-        return returnData;
+        return returnData
+
+    def search(self, query):
+        searchURL = SEARCH_URL + unicode(query)
+        apiData = JSON.ObjectFromURL(searchURL)
+        return self.parseShows(apiData)
 
     def extractShowURL(self, show):
         showID = show['id']

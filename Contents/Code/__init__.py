@@ -18,7 +18,6 @@ sbs = SBS_channel()
 
 def Start():
     Plugin.AddPrefixHandler(VIDEO_PREFIX, viewCategory, L('VideoTitle'), ICON, ART)
-    Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
     MediaContainer.art = R(ART)
     MediaContainer.title1 = NAME
     DirectoryItem.thumb = R(ICON)
@@ -52,6 +51,8 @@ def viewCategory(category=None):
             title=child['name']
         )
         dir.add(link)
+
+    dir.add(InputDirectoryObject(key = Callback(ParseSearchResults), title = 'Search...', prompt = 'Search for Videos'))
     return dir
 
 
@@ -73,3 +74,15 @@ def videoLink(url, title):
         title=title,
     )
     return vco
+
+@route(ROUTE_PREFIX + '/search')
+def ParseSearchResults(query = ''):
+    dir = ObjectContainer(title2='Search Results')
+    shows = sbs.search(query)
+
+    for show in shows:
+        url = unicode(show['url'])
+        dir.add(videoLink(url=url, title=show['title']))
+
+    return dir
+

@@ -31,8 +31,15 @@ def PlayVideo(url):
     htmlInfo = re.findall('html: \'(.*?)\'', js, re.DOTALL)[0]
     standardInfo = re.findall('standard: \'(.*?)\'', js, re.DOTALL)[0]
 
-    htmlVideo = getPlaybackURL(htmlInfo)
-    standardVideo = getPlaybackURL(standardInfo)
+    try:
+        htmlVideo = getPlaybackURL(htmlInfo)
+    except:
+        htmlVideo = ''
+
+    try:
+        standardVideo = getPlaybackURL(standardInfo)
+    except:
+        standardVideo = ''
 
     if 'videocdn.sbs.com.au' in standardVideo:
         Log('Using standardInfo')
