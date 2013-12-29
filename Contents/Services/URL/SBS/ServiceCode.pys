@@ -16,7 +16,7 @@ def MetadataObjectForURL(url):
 def MediaObjectsForURL(url):
     return [
         MediaObject(
-            protocol='rtmp',
+            protocol='http',
             video_resolution='640',
             audio_channels=2,
             parts=[PartObject(key=Callback(PlayVideo, url=url))],
@@ -28,10 +28,28 @@ def PlayVideo(url):
     data = HTML.ElementFromURL(url)
     js = data.xpath('//script[text()[contains(., "playerParams.releaseUrls")]]')[0].text
 
-    streamInfoURL = re.findall('html: \'(.*?)\'', js, re.DOTALL)[0]
-    streamInfo = HTML.ElementFromURL(streamInfoURL)
-    video = streamInfo.xpath('//video/@src')[0]
+    htmlInfo = re.findall('html: \'(.*?)\'', js, re.DOTALL)[0]
+    standardInfo = re.findall('standard: \'(.*?)\'', js, re.DOTALL)[0]
+
+    htmlVideo = getPlaybackURL(htmlInfo)
+    standardVideo = getPlaybackURL(standardInfo)
+
+    if 'videocdn.sbs.com.au' in standardVideo:
+        Log('Using standardInfo')
+        video = standardVideo
+    else:
+        video = htmlVideo
+
     Log('=== Video ===')
-    Log('Info: ' + streamInfoURL)
+    Log('HTML info: ' + htmlInfo)
+    Log('Standard info: ' + standardInfo)
+    Log('Html Video: ' + htmlVideo)
+    Log('Standard Video: ' + standardVideo)
     Log('Video: ' + video)
+    Log('=== End Video ===')
+    # video = 'http://videocdn.sbs.com.au/u/video/SBS_Production/managed/2013/10/07/52381763703_1500K.mp4'
     return Redirect(video)
+
+def getPlaybackURL(url):
+    streamInfo = HTML.ElementFromURL(url)
+    return streamInfo.xpath('//video/@src')[0]
