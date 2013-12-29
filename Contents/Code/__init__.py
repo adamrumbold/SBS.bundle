@@ -39,7 +39,14 @@ def viewCategory(category=None):
         title = category['name']
 
     dir = ObjectContainer(title2=title)
+
+    catPrefix = ''
+
     for child in cats:
+        if child['clickable'] == '0':
+            catPrefix = child['name'] + ' - '
+            continue
+
         id = child['id']
         if 'children' in child:
             call = Callback(viewCategory, category=id)
@@ -48,7 +55,7 @@ def viewCategory(category=None):
 
         link = DirectoryObject(
             key=call,
-            title=child['name']
+            title=catPrefix + child['name']
         )
         dir.add(link)
 
